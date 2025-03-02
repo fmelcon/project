@@ -127,7 +127,7 @@ const ApiSection: React.FC<ApiSectionProps> = () => {
     fetchClasses();
   }, []);
 
-  // Search functionality
+  // Search functionality s
   const handleSearch = async () => {
     if (!searchTerm.trim()) return;
 
