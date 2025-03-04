@@ -11,13 +11,12 @@ import {
 } from "lucide-react";
 
 interface TokenPanelProps {
-  addToken: (type: "ally" | "enemy" | "boss") => void;
+  addToken: (type: "ally" | "enemy" | "boss", tokenData: unknown) => void;
   removeToken: (id: string) => void;
   resetGrid: () => void;
   saveGame: () => void;
   loadGame: () => void;
-  updateTokenName: (id: string, newName: string) => void;
-  updateTokenColor: (id: string, newColor: string) => void; // Nueva función para actualizar el color
+  updateToken: (id: string, newData: unknown) => void; // Nueva función para actualizar los datos del token
   tokens: Array<{
     id: string;
     type: "ally" | "enemy" | "boss";
@@ -25,6 +24,10 @@ interface TokenPanelProps {
     y: number;
     color: string;
     name?: string;
+    initiative?: number;
+    ac?: number;
+    hp?: number;
+    damage?: number;
   }>;
 }
 
@@ -34,28 +37,47 @@ const TokenPanel: React.FC<TokenPanelProps> = ({
   resetGrid,
   saveGame,
   loadGame,
-  updateTokenName,
-  updateTokenColor, // Nueva prop
+  updateToken,
   tokens,
 }) => {
   const [editingTokenId, setEditingTokenId] = useState<string | null>(null);
   const [tokenName, setTokenName] = useState<string>("");
-  const [showColorPicker, setShowColorPicker] = useState<string | null>(null); // Estado para mostrar el selector de color
+  const [tokenInitiative, setTokenInitiative] = useState<number | undefined>(
+    undefined
+  );
+  const [tokenAC, setTokenAC] = useState<number | undefined>(undefined);
+  const [tokenHP, setTokenHP] = useState<number | undefined>(undefined);
+  const [tokenDamage, setTokenDamage] = useState<number | undefined>(undefined);
+  const [showColorPicker, setShowColorPicker] = useState<string | null>(null);
 
-  const handleEditName = (tokenId: string, currentName: string) => {
+  const handleEditToken = (tokenId: string, tokenData: any) => {
     setEditingTokenId(tokenId);
-    setTokenName(currentName);
+    setTokenName(tokenData.name || "");
+    setTokenInitiative(tokenData.initiative || undefined);
+    setTokenAC(tokenData.ac || undefined);
+    setTokenHP(tokenData.hp || undefined);
+    setTokenDamage(tokenData.damage || undefined);
   };
 
-  const handleSaveName = (tokenId: string) => {
-    updateTokenName(tokenId, tokenName);
+  const handleSaveToken = (tokenId: string) => {
+    updateToken(tokenId, {
+      name: tokenName,
+      initiative: tokenInitiative,
+      ac: tokenAC,
+      hp: tokenHP,
+      damage: tokenDamage,
+    });
     setEditingTokenId(null);
     setTokenName("");
+    setTokenInitiative(undefined);
+    setTokenAC(undefined);
+    setTokenHP(undefined);
+    setTokenDamage(undefined);
   };
 
   const handleColorChange = (tokenId: string, color: string) => {
-    updateTokenColor(tokenId, color);
-    setShowColorPicker(null); // Ocultar el selector de color después de elegir
+    updateToken(tokenId, { color });
+    setShowColorPicker(null);
   };
 
   const colors = [
@@ -72,30 +94,33 @@ const TokenPanel: React.FC<TokenPanelProps> = ({
   ];
 
   return (
-    <div className="w-full md:w-1/4 bg-gray-800 p-4 rounded-lg shadow-lg flex flex-col gap-4">
+    <div className="w-full bg-gray-800 p-4 rounded-lg shadow-lg flex flex-col gap-4">
       <h2 className="text-xl font-bold border-b border-gray-700 pb-2">
         Token Management
       </h2>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-3">
         <button
           className="bg-blue-600 hover:bg-blue-700 p-2 rounded flex items-center justify-center gap-1"
-          onClick={() => addToken("ally")}
+          onClick={() => addToken("ally", {})}
         >
           <Plus size={16} /> Add Ally
         </button>
         <button
           className="bg-red-600 hover:bg-red-700 p-2 rounded flex items-center justify-center gap-1"
-          onClick={() => addToken("enemy")}
+          onClick={() => addToken("enemy", {})}
         >
           <Plus size={16} /> Add Enemy
         </button>
         <button
           className="bg-yellow-600 hover:bg-yellow-700 p-2 rounded flex items-center justify-center gap-1 col-span-2"
-          onClick={() => addToken("boss")}
+          onClick={() => addToken("boss", {})}
         >
-          <Plus size={16} /> Add Boss
+          <Plus size={16} /> Add Large Boss
         </button>
+        <p className="warning-message col-span-2">
+          Remember to take the boss token from the top-left side to move it.
+        </p>
       </div>
 
       <div className="mt-4">
@@ -116,12 +141,47 @@ const TokenPanel: React.FC<TokenPanelProps> = ({
                       style={{ backgroundColor: token.color }}
                     />
                     {editingTokenId === token.id ? (
-                      <input
-                        type="text"
-                        value={tokenName}
-                        onChange={(e) => setTokenName(e.target.value)}
-                        className="bg-gray-700 text-white p-1 rounded"
-                      />
+                      <div className="flex flex-col gap-1">
+                        <input
+                          type="text"
+                          value={tokenName}
+                          onChange={(e) => setTokenName(e.target.value)}
+                          className="bg-gray-700 text-white p-1 rounded"
+                          placeholder="Name"
+                        />
+                        <input
+                          type="number"
+                          value={tokenInitiative || ""}
+                          onChange={(e) =>
+                            setTokenInitiative(Number(e.target.value))
+                          }
+                          className="bg-gray-700 text-white p-1 rounded"
+                          placeholder="Initiative"
+                        />
+                        <input
+                          type="number"
+                          value={tokenAC || ""}
+                          onChange={(e) => setTokenAC(Number(e.target.value))}
+                          className="bg-gray-700 text-white p-1 rounded"
+                          placeholder="AC"
+                        />
+                        <input
+                          type="number"
+                          value={tokenHP || ""}
+                          onChange={(e) => setTokenHP(Number(e.target.value))}
+                          className="bg-gray-700 text-white p-1 rounded"
+                          placeholder="HP"
+                        />
+                        <input
+                          type="number"
+                          value={tokenDamage || ""}
+                          onChange={(e) =>
+                            setTokenDamage(Number(e.target.value))
+                          }
+                          className="bg-gray-700 text-white p-1 rounded"
+                          placeholder="Damage"
+                        />
+                      </div>
                     ) : (
                       <span>
                         {token.name ||
@@ -139,16 +199,14 @@ const TokenPanel: React.FC<TokenPanelProps> = ({
                     {editingTokenId === token.id ? (
                       <button
                         className="text-green-500 hover:text-green-300"
-                        onClick={() => handleSaveName(token.id)}
+                        onClick={() => handleSaveToken(token.id)}
                       >
                         <Check size={16} />
                       </button>
                     ) : (
                       <button
                         className="text-blue-500 hover:text-blue-300"
-                        onClick={() =>
-                          handleEditName(token.id, token.name || "")
-                        }
+                        onClick={() => handleEditToken(token.id, token)}
                       >
                         <Edit size={16} />
                       </button>
@@ -208,6 +266,17 @@ const TokenPanel: React.FC<TokenPanelProps> = ({
         >
           <RefreshCw size={16} /> Reset Grid
         </button>
+
+        {/* Botón de Cafecito */}
+        <div className="p-2 rounded flex items-center justify-center gap-1">
+          <a href="https://cafecito.app/fmelcon" rel="noopener" target="_blank">
+            <img
+              srcset="https://cdn.cafecito.app/imgs/buttons/button_1.png 1x, https://cdn.cafecito.app/imgs/buttons/button_1_2x.png 2x, https://cdn.cafecito.app/imgs/buttons/button_1_3.75x.png 3.75x"
+              src="https://cdn.cafecito.app/imgs/buttons/button_1.png"
+              alt="Invitame un café en cafecito.app"
+            />
+          </a>
+        </div>
       </div>
     </div>
   );

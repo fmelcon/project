@@ -99,6 +99,23 @@ button:active {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+.container {
+  width: 100%; /* Ocupar todo el ancho disponible */
+  max-width: none; /* Eliminar cualquier max-width */
+}
+
+.warning-message {
+  background-color: #ffcc00; /* Fondo amarillo */
+  color: #000; /* Texto negro */
+  padding: 10px; /* Espaciado interno */
+  border: 2px solid #ff9900; /* Borde naranja */
+  border-radius: 5px; /* Bordes redondeados */
+  font-weight: bold; /* Texto en negrita */
+  text-align: center; /* Texto centrado */
+  margin: 10px 0; /* Margen superior e inferior */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra suave */
+}
+
 .color-picker div {
   width: 1.5rem;
   height: 1.5rem;
@@ -145,14 +162,6 @@ button:active {
   }
 
   .w-full {
-    width: 100%;
-  }
-
-  .md:w-3/4 {
-    width: 100%;
-  }
-
-  .md:w-1/4 {
     width: 100%;
   }
 
@@ -205,4 +214,76 @@ button:active {
     width: 20px;
     height: 20px;
   }
+}
+@keyframes roll {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.dice-button {
+  padding: 8px;
+  border-radius: 8px;
+  background-color: #4a5568;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dice-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dice-button.rolling {
+  animation: roll 1s linear infinite;
+}
+
+/* Estilos para la lista de iniciativa */
+.initiative-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.initiative-list ul {
+  list-style: none;
+  padding: 0;
+}
+
+.initiative-list li {
+  padding: 8px;
+  border-bottom: 1px solid #4a5568;
+}
+
+/* Estilos para el lanzador de dados */
+.dice-roller {
+  margin-top: 1rem;
+}
+
+.dice-roller .dice-button {
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.dice-roller .dice-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dice-roller .result {
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 1rem;
+}
+.token-tooltip {
+  background-color: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 8px;
+  max-width: 200px;
+  pointer-events: none; /* Evitar que el tooltip interfiera con los eventos del mouse */
 }

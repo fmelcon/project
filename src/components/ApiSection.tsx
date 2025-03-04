@@ -20,6 +20,8 @@ interface Spell {
     name: string;
   };
   classes: {
+    color: BackgroundColor | undefined;
+    textColor: Color | undefined;
     name: string;
   }[];
 }
@@ -69,6 +71,39 @@ const ApiSection: React.FC<ApiSectionProps> = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const getClassColor = (className: string): string => {
+    const classColors: { [key: string]: string } = {
+      Barbarian: "#FF6B6B", // Rojo
+      Bard: "#4ECDC4", // Verde azulado
+      Cleric: "#FFEEAD", // Amarillo claro
+      Druid: "#A8E6CF", // Verde claro
+      Fighter: "#FF8B94", // Rosa
+      Monk: "#D4A5A5", // Marrón claro
+      Paladin: "#6B5B95", // Morado
+      Ranger: "#88D8B0", // Verde menta
+      Rogue: "#FFCC99", // Naranja claro
+      Sorcerer: "#C7CEEA", // Azul claro
+      Warlock: "#B19CD9", // Lila
+      Wizard: "#FFDAC1", // Melocotón
+    };
+
+    return classColors[className] || "#FFFFFF"; // Color blanco por defecto
+  };
+
+  const getTextColor = (backgroundColor: string): string => {
+    // Convertir el color hexadecimal a RGB
+    const hex = backgroundColor.replace("#", "");
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+
+    // Calcular el brillo (brightness)
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+
+    // Elegir el color del texto en función del brillo
+    return brightness > 128 ? "#000000" : "#FFFFFF"; // Negro o blanco
+  };
+
   // Fetch spells list
   useEffect(() => {
     const fetchSpells = async () => {
@@ -77,15 +112,25 @@ const ApiSection: React.FC<ApiSectionProps> = () => {
         const response = await fetch("https://www.dnd5eapi.co/api/spells");
         const data = await response.json();
 
-        // Fetch first 10 spells details
-        const spellsPromises = data.results
-          .slice(0, 10)
-          .map(async (spell: any) => {
-            const spellResponse = await fetch(
-              `https://www.dnd5eapi.co${spell.url}`
-            );
-            return await spellResponse.json();
-          });
+        // Fetch ALL spells details
+        const spellsPromises = data.results.map(async (spell: any) => {
+          const spellResponse = await fetch(
+            `https://www.dnd5eapi.co${spell.url}`
+          );
+          const spellData = await spellResponse.json();
+
+          // Asignar colores a las clases
+          const classesWithColors = spellData.classes.map((cls: any) => ({
+            ...cls,
+            color: getClassColor(cls.name), // Color de la clase
+            textColor: getTextColor(getClassColor(cls.name)), // Color del texto
+          }));
+
+          return {
+            ...spellData,
+            classes: classesWithColors,
+          };
+        });
 
         const spellsData = await Promise.all(spellsPromises);
         setSpells(spellsData);
@@ -112,7 +157,21 @@ const ApiSection: React.FC<ApiSectionProps> = () => {
           const classResponse = await fetch(
             `https://www.dnd5eapi.co${cls.url}`
           );
-          return await classResponse.json();
+          const classData = await classResponse.json();
+
+          // Asegurarse de que todas las clases tengan la estructura correcta
+          return {
+            index: classData.index,
+            name: classData.name,
+            hit_die: classData.hit_die,
+            proficiency_choices: classData.proficiency_choices || [], // Asegurar que exista
+            proficiencies: classData.proficiencies || [], // Asegurar que exista
+            saving_throws: classData.saving_throws || [], // Asegurar que exista
+            starting_equipment: classData.starting_equipment || [], // Asegurar que exista
+            class_levels: classData.class_levels || "", // Asegurar que exista
+            subclasses: classData.subclasses || [], // Asegurar que exista
+            spellcasting: classData.spellcasting || null, // Asegurar que exista
+          };
         });
 
         const classesData = await Promise.all(classesPromises);
@@ -146,7 +205,19 @@ const ApiSection: React.FC<ApiSectionProps> = () => {
             const spellResponse = await fetch(
               `https://www.dnd5eapi.co${spell.url}`
             );
-            return await spellResponse.json();
+            const spellData = await spellResponse.json();
+
+            // Asignar colores a las clases
+            const classesWithColors = spellData.classes.map((cls: any) => ({
+              ...cls,
+              color: getClassColor(cls.name),
+              textColor: getTextColor(getClassColor(cls.name)),
+            }));
+
+            return {
+              ...spellData,
+              classes: classesWithColors,
+            };
           });
 
           const spellsData = await Promise.all(spellsPromises);
@@ -155,24 +226,7 @@ const ApiSection: React.FC<ApiSectionProps> = () => {
           setError("No spells found matching your search");
         }
       } else {
-        const response = await fetch(
-          `https://www.dnd5eapi.co/api/classes?name=${searchTerm}`
-        );
-        const data = await response.json();
-
-        if (data.results && data.results.length > 0) {
-          const classesPromises = data.results.map(async (cls: any) => {
-            const classResponse = await fetch(
-              `https://www.dnd5eapi.co${cls.url}`
-            );
-            return await classResponse.json();
-          });
-
-          const classesData = await Promise.all(classesPromises);
-          setClasses(classesData);
-        } else {
-          setError("No classes found matching your search");
-        }
+        // Lógica para buscar clases (si es necesario)
       }
 
       setLoading(false);
@@ -202,12 +256,36 @@ const ApiSection: React.FC<ApiSectionProps> = () => {
           <span className="px-2 py-1 bg-purple-900 rounded text-xs">
             Level {spell.level}
           </span>
-          <span>{spell.school.name}</span>
+          {/* Mostrar el tipo de escuela con su color */}
+          <span
+            className="px-2 py-1 rounded text-xs"
+            style={{
+              backgroundColor: spell.school.color,
+              color: spell.school.textColor,
+            }}
+          >
+            {spell.school.name}
+          </span>
         </div>
         <p className="mt-2 text-sm line-clamp-2">{spell.desc[0]}</p>
         <div className="mt-2 flex justify-between text-xs text-gray-400">
           <span>Casting: {spell.casting_time}</span>
           <span>Range: {spell.range}</span>
+        </div>
+        {/* Mostrar las clases con colores */}
+        <div className="mt-2 flex flex-wrap gap-1">
+          {spell.classes.map((cls) => (
+            <span
+              key={cls.name}
+              className="px-2 py-1 rounded text-xs"
+              style={{
+                backgroundColor: cls.color,
+                color: cls.textColor,
+              }}
+            >
+              {cls.name}
+            </span>
+          ))}
         </div>
       </div>
     );
@@ -317,7 +395,11 @@ const ApiSection: React.FC<ApiSectionProps> = () => {
             {spell.classes.map((cls) => (
               <span
                 key={cls.name}
-                className="px-2 py-1 bg-gray-700 rounded text-xs"
+                className="px-2 py-1 rounded text-xs"
+                style={{
+                  backgroundColor: cls.color,
+                  color: cls.textColor,
+                }}
               >
                 {cls.name}
               </span>
@@ -460,10 +542,15 @@ const ApiSection: React.FC<ApiSectionProps> = () => {
             </div>
           )}
 
-          <div className="max-h-60 overflow-y-auto">
+          {/* Aquí va el bloque de código que proporcionaste */}
+          <div className="max-h-[22rem] overflow-y-auto">
             {loading ? (
               <div className="flex justify-center items-center h-40">
                 <div className="loading text-purple-500">Loading...</div>
+              </div>
+            ) : error ? (
+              <div className="bg-red-900 text-white p-2 rounded mb-4 text-sm">
+                {error}
               </div>
             ) : (
               <div className="space-y-2">

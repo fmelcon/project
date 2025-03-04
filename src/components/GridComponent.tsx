@@ -1,9 +1,14 @@
 import React, { useRef, useEffect, useState } from "react";
+import TokenTooltip from "./TokenTooltip"; // Asegúrate de importar el componente TokenTooltip
 
 interface GridComponentProps {
   gridType: "square" | "octagonal";
   backgroundImage: string | null;
   tokens: Array<{
+    hp: string;
+    ac: string;
+    damage: string;
+    initiative: string;
     name: any;
     id: string;
     type: "ally" | "enemy";
@@ -49,8 +54,8 @@ const GridComponent: React.FC<GridComponentProps> = ({
     y: number;
   } | null>(null);
 
-  const GRID_SIZE = 38;
-  const CELL_SIZE = 38;
+  const GRID_SIZE = 20;
+  const CELL_SIZE = 50;
   const GRID_WIDTH = GRID_SIZE * CELL_SIZE;
   const GRID_HEIGHT = GRID_SIZE * CELL_SIZE;
 
@@ -115,6 +120,40 @@ const GridComponent: React.FC<GridComponentProps> = ({
     ctx.strokeStyle = color;
     ctx.lineWidth = 2;
     ctx.stroke();
+  };
+
+  const [hoveredToken, setHoveredToken] = useState<{
+    id: string;
+    x: number;
+    y: number;
+  } | null>(null);
+  const [showTooltip, setShowTooltip] = useState(false);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleMouseEnterToken = (tokenId: string, x: number, y: number) => {
+    // Limpiar el timeout anterior si existe
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+
+    // Establecer un nuevo timeout para mostrar el tooltip después de 0.3 segundos
+    hoverTimeoutRef.current = setTimeout(() => {
+      setHoveredToken({ id: tokenId, x, y });
+      setShowTooltip(true);
+    }, 300); // 0.3 segundos de retraso
+  };
+
+  const handleMouseLeaveToken = () => {
+    // Limpiar el timeout si el mouse sale del token antes de que se muestre el tooltip
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+
+    // Esperar un pequeño retraso antes de ocultar el tooltip
+    setTimeout(() => {
+      setHoveredToken(null);
+      setShowTooltip(false);
+    }, 100); // 0.1 segundos de retraso para ocultar el tooltip
   };
 
   const drawSquare = (
@@ -294,10 +333,13 @@ const GridComponent: React.FC<GridComponentProps> = ({
   // Render tokens
   const renderTokens = () => {
     return tokens.map((token) => {
+      const isBoss = token.type === "boss";
+      const tokenSize = isBoss ? CELL_SIZE * 2 : CELL_SIZE; // Tamaño del token
+
       const tokenStyle: React.CSSProperties = {
-        width: `${token.type === "boss" ? CELL_SIZE * 1.5 : CELL_SIZE}px`,
-        height: `${token.type === "boss" ? CELL_SIZE * 1.5 : CELL_SIZE}px`,
-        borderRadius: "50%",
+        width: `${tokenSize}px`,
+        height: `${tokenSize}px`,
+        borderRadius: isBoss ? "10%" : "50%", // Cambia la forma si es un boss
         backgroundColor: token.color,
         position: "absolute",
         left: `${token.x * CELL_SIZE}px`,
@@ -321,7 +363,19 @@ const GridComponent: React.FC<GridComponentProps> = ({
       }
 
       return (
-        <div key={token.id} className="token" style={tokenStyle}>
+        <div
+          key={token.id}
+          className="token"
+          style={tokenStyle}
+          onMouseEnter={() =>
+            handleMouseEnterToken(
+              token.id,
+              token.x * CELL_SIZE,
+              token.y * CELL_SIZE
+            )
+          }
+          onMouseLeave={handleMouseLeaveToken}
+        >
           {token.name
             ? token.name.charAt(0).toUpperCase()
             : token.type === "ally"
@@ -399,6 +453,23 @@ const GridComponent: React.FC<GridComponentProps> = ({
       >
         {renderTokens()}
       </div>
+
+      {/* Tooltip */}
+      {showTooltip && hoveredToken && (
+        <div
+          style={{
+            position: "absolute",
+            left: `${hoveredToken.x + 20}px`, // Ajustar la posición del tooltip
+            top: `${hoveredToken.y + 20}px`,
+            zIndex: 20,
+            pointerEvents: "none", // Evitar que el tooltip interfiera con los eventos del mouse
+          }}
+        >
+          <TokenTooltip
+            token={tokens.find((token) => token.id === hoveredToken.id)!}
+          />
+        </div>
+      )}
     </div>
   );
 };

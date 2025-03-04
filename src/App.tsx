@@ -17,6 +17,8 @@ import GridComponent from "./components/GridComponent";
 import TokenPanel from "./components/TokenPanel";
 import DrawingTools from "./components/DrawingTools";
 import ApiSection from "./components/ApiSection";
+import InitiativeList from "./components/InitiativeList"; // Importar el nuevo componente
+import DiceRoller from "./components/DiceRoller"; // Importar el nuevo componente
 import "./App.css";
 
 function App() {
@@ -58,7 +60,7 @@ function App() {
     setDrawingData([]);
   };
 
-  const addToken = (type: "ally" | "enemy" | "boss") => {
+  const addToken = (type: "ally" | "enemy" | "boss", tokenData: any) => {
     const newToken = {
       id: `token-${Date.now()}`,
       type,
@@ -66,6 +68,11 @@ function App() {
       y: Math.floor(Math.random() * 20),
       color:
         type === "ally" ? "#3498db" : type === "enemy" ? "#e74c3c" : "#f1c40f",
+      name: tokenData.name || "",
+      initiative: tokenData.initiative || undefined,
+      ac: tokenData.ac || undefined,
+      hp: tokenData.hp || undefined,
+      damage: tokenData.damage || undefined,
     };
     setTokens([...tokens, newToken]);
   };
@@ -92,14 +99,6 @@ function App() {
     setTokens([]);
     setDrawingData([]);
     setBackgroundImage(null);
-  };
-
-  const updateTokenColor = (id: string, newColor: string) => {
-    setTokens(
-      tokens.map((token) =>
-        token.id === id ? { ...token, color: newColor } : token
-      )
-    );
   };
 
   const saveGame = () => {
@@ -135,6 +134,14 @@ function App() {
     setDrawingData([...drawingData, newDrawingData]);
   };
 
+  const updateToken = (id: string, newData: any) => {
+    setTokens(
+      tokens.map((token) =>
+        token.id === id ? { ...token, ...newData } : token
+      )
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col">
       <header className="bg-gray-800 p-4 shadow-lg">
@@ -142,7 +149,24 @@ function App() {
       </header>
 
       <main className="flex-grow flex flex-col md:flex-row p-4 gap-4">
-        <div className="flex flex-col gap-4 w-full md:w-3/4">
+        {/* Columna izquierda: Lista de iniciativa y dados */}
+        <div className="w-full md:w-1/4 flex flex-col gap-4">
+          <InitiativeList tokens={tokens} />{" "}
+          {/* Mostrar la lista de iniciativa */}
+          <DiceRoller /> {/* Mostrar el lanzador de dados */}
+          <TokenPanel
+            addToken={addToken}
+            removeToken={removeToken}
+            resetGrid={resetGrid}
+            saveGame={saveGame}
+            loadGame={loadGame}
+            updateToken={updateToken} // Nueva función para actualizar los datos del token
+            tokens={tokens}
+          />
+        </div>
+
+        {/* Columna central: Grilla y herramientas de dibujo */}
+        <div className="flex flex-col gap-4 w-full md:w-1/2">
           <div className="bg-gray-800 p-4 rounded-lg shadow-lg">
             <div className="flex justify-between items-center mb-4">
               <div className="flex gap-2">
@@ -203,20 +227,9 @@ function App() {
             setSelectedTool={setSelectedTool}
             selectedColor={selectedColor}
             setSelectedColor={setSelectedColor}
-            clearDrawing={clearDrawing} // Pasar la función como prop
+            clearDrawing={clearDrawing}
           />
         </div>
-
-        <TokenPanel
-          addToken={addToken}
-          removeToken={removeToken}
-          resetGrid={resetGrid}
-          saveGame={saveGame}
-          loadGame={loadGame}
-          updateTokenName={updateTokenName}
-          updateTokenColor={updateTokenColor} // Pasar la nueva función como prop
-          tokens={tokens}
-        />
       </main>
 
       <ApiSection />
