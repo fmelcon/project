@@ -5,13 +5,13 @@ interface GridComponentProps {
   gridType: "square" | "octagonal";
   backgroundImage: string | null;
   tokens: Array<{
-    hp: string;
-    ac: string;
-    damage: string;
-    initiative: string;
-    name: any;
     id: string;
-    type: "ally" | "enemy";
+    name?: string;
+    initiative?: number;
+    ac?: number;
+    hp?: number;
+    damage?: number;
+    type: "ally" | "enemy" | "boss";
     x: number;
     y: number;
     color: string;
@@ -30,6 +30,19 @@ interface GridComponentProps {
   draggedToken: string | null;
   setDraggedToken: React.Dispatch<React.SetStateAction<string | null>>;
 }
+
+const getContrastColor = (hexcolor: string): string => {
+  // Convertir el color hex a RGB
+  const r = parseInt(hexcolor.slice(1, 3), 16);
+  const g = parseInt(hexcolor.slice(3, 5), 16);
+  const b = parseInt(hexcolor.slice(5, 7), 16);
+
+  // Calcular el brillo usando la fórmula YIQ
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+
+  // Retornar blanco o negro según el contraste
+  return yiq >= 128 ? "#000000" : "#FFFFFF";
+};
 
 const GridComponent: React.FC<GridComponentProps> = ({
   gridType,
@@ -334,26 +347,36 @@ const GridComponent: React.FC<GridComponentProps> = ({
   const renderTokens = () => {
     return tokens.map((token) => {
       const isBoss = token.type === "boss";
-      const tokenSize = isBoss ? CELL_SIZE * 2 : CELL_SIZE; // Tamaño del token
+      const tokenSize = isBoss ? CELL_SIZE * 2 : CELL_SIZE;
+      const tokenColor =
+        token.color ||
+        (token.type === "ally"
+          ? "#3498db"
+          : token.type === "enemy"
+          ? "#e74c3c"
+          : "#f1c40f");
+      const contrastColor = getContrastColor(tokenColor);
 
       const tokenStyle: React.CSSProperties = {
         width: `${tokenSize}px`,
         height: `${tokenSize}px`,
-        borderRadius: isBoss ? "10%" : "50%", // Cambia la forma si es un boss
-        backgroundColor: token.color,
+        borderRadius: isBoss ? "10%" : "50%",
+        backgroundColor: tokenColor,
         position: "absolute",
         left: `${token.x * CELL_SIZE}px`,
         top: `${token.y * CELL_SIZE}px`,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        color: "white",
+        color: contrastColor,
         fontWeight: "bold",
         fontSize: "12px",
-        border: "2px solid white",
+        border: `2px solid ${contrastColor}`,
+        boxShadow: `0 0 10px rgba(0, 0, 0, 0.3)`,
         zIndex: 10,
         cursor: selectedTool === "move" ? "grab" : "default",
         pointerEvents: selectedTool === "move" ? "auto" : "none",
+        textShadow: "1px 1px 2px rgba(0, 0, 0, 0.5)",
       };
 
       if (isDragging && token.id === draggedToken) {
@@ -366,6 +389,7 @@ const GridComponent: React.FC<GridComponentProps> = ({
         <div
           key={token.id}
           className="token"
+          data-type={token.type}
           style={tokenStyle}
           onMouseEnter={() =>
             handleMouseEnterToken(

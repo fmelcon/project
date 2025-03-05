@@ -248,7 +248,8 @@ const ApiSection: React.FC<ApiSectionProps> = () => {
     return (
       <div
         key={spell.index}
-        className="api-card bg-gray-800 rounded-lg p-4 shadow-lg cursor-pointer hover:bg-gray-700"
+        className="api-card rounded-lg p-4 shadow-lg cursor-pointer hover:bg-gray-700"
+        style={{ background: "linear-gradient(145deg, #1a1a1a, #2d2d2d)" }}
         onClick={() => setSelectedItem(spell)}
       >
         <h3 className="text-lg font-bold">{spell.name}</h3>
@@ -296,7 +297,8 @@ const ApiSection: React.FC<ApiSectionProps> = () => {
     return (
       <div
         key={cls.index}
-        className="api-card bg-gray-800 rounded-lg p-4 shadow-lg cursor-pointer hover:bg-gray-700"
+        className="api-card rounded-lg p-4 shadow-lg cursor-pointer hover:bg-gray-700"
+        style={{ background: "linear-gradient(145deg, #1a1a1a, #2d2d2d)" }}
         onClick={() => setSelectedItem(cls)}
       >
         <h3 className="text-lg font-bold">{cls.name}</h3>
@@ -320,7 +322,10 @@ const ApiSection: React.FC<ApiSectionProps> = () => {
   // Render spell details
   const renderSpellDetails = (spell: Spell) => {
     return (
-      <div className="bg-gray-800 rounded-lg p-6 shadow-lg">
+      <div
+        className="rounded-lg p-6 shadow-lg"
+        style={{ background: "linear-gradient(145deg, #1a1a1a, #2d2d2d)" }}
+      >
         <div className="flex justify-between items-start">
           <h2 className="text-2xl font-bold">{spell.name}</h2>
           <button
@@ -413,7 +418,10 @@ const ApiSection: React.FC<ApiSectionProps> = () => {
   // Render class details
   const renderClassDetails = (cls: Class) => {
     return (
-      <div className="bg-gray-800 rounded-lg p-6 shadow-lg">
+      <div
+        className="rounded-lg p-6 shadow-lg"
+        style={{ background: "linear-gradient(145deg, #1a1a1a, #2d2d2d)" }}
+      >
         <div className="flex justify-between items-start">
           <h2 className="text-2xl font-bold">{cls.name}</h2>
           <button
@@ -499,7 +507,10 @@ const ApiSection: React.FC<ApiSectionProps> = () => {
       <h2 className="text-2xl font-bold mb-4">D&D 5e Reference</h2>
 
       <div className="flex flex-col md:flex-row gap-4">
-        <div className="w-full md:w-1/3 bg-gray-800 p-4 rounded-lg shadow-lg">
+        <div
+          className="w-full md:w-1/3 p-4 rounded-lg shadow-lg"
+          style={{ background: "linear-gradient(145deg, #1a1a1a, #2d2d2d)" }}
+        >
           <div className="flex mb-4">
             <button
               className={`flex-1 py-2 rounded-l-lg flex items-center justify-center gap-1 ${
@@ -563,8 +574,11 @@ const ApiSection: React.FC<ApiSectionProps> = () => {
                         "index" in selectedItem &&
                         selectedItem.index === spell.index
                           ? "bg-purple-700"
-                          : "bg-gray-700 hover:bg-gray-600"
+                          : "bg-gray-700 hover:bg-gray-700 initiative-list"
                       }`}
+                      style={{
+                        background: "linear-gradient(145deg, #1a1a1a, #2d2d2d)",
+                      }}
                       onClick={() => setSelectedItem(spell)}
                     >
                       <div className="font-medium">{spell.name}</div>
@@ -583,8 +597,11 @@ const ApiSection: React.FC<ApiSectionProps> = () => {
                         "index" in selectedItem &&
                         selectedItem.index === cls.index
                           ? "bg-purple-700"
-                          : "bg-gray-700 hover:bg-gray-600"
+                          : "bg-gray-700 hover:bg-gray-700 initiative-list"
                       }`}
+                      style={{
+                        background: "linear-gradient(145deg, #1a1a1a, #2d2d2d)",
+                      }}
                       onClick={() => setSelectedItem(cls)}
                     >
                       <div className="font-medium">{cls.name}</div>

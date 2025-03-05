@@ -144,7 +144,10 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col">
-      <header className="bg-gray-800 p-4 shadow-lg">
+      <header
+        className="p-4 shadow-lg"
+        style={{ background: "linear-gradient(145deg, #1a1a1a, #2d2d2d)" }}
+      >
         <h1 className="text-2xl font-bold text-center">D&D Combat Grid</h1>
       </header>
 
@@ -167,7 +170,10 @@ function App() {
 
         {/* Columna central: Grilla y herramientas de dibujo */}
         <div className="flex flex-col gap-4 w-full">
-          <div className="bg-gray-800 p-4 rounded-lg shadow-lg">
+          <div
+            className="p-4 rounded-lg shadow-lg"
+            style={{ background: "linear-gradient(145deg, #1a1a1a, #2d2d2d)" }}
+          >
             <div className="flex justify-between items-center mb-4">
               <div className="flex gap-2">
                 <button
@@ -234,7 +240,10 @@ function App() {
 
       <ApiSection />
 
-      <footer className="bg-gray-800 p-4 text-center text-sm">
+      <footer
+        className="p-4 text-center text-sm"
+        style={{ background: "linear-gradient(145deg, #1a1a1a, #2d2d2d)" }}
+      >
         D&D Combat Grid © 2025 - Powered by Franco Melcon
       </footer>
     </div>

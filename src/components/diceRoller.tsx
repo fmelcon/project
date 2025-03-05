@@ -20,7 +20,10 @@ const DiceRoller: React.FC<{ onRoll: (sides: number) => void }> = ({
   };
 
   return (
-    <div className="bg-gray-800 p-4 rounded-lg shadow-lg">
+    <div
+      className="p-4 rounded-lg shadow-lg initiative-list"
+      style={{ background: "linear-gradient(145deg, #1a1a1a, #2d2d2d)" }}
+    >
       <h2 className="text-xl font-bold border-b border-gray-700 pb-2 mb-4 text-center">
         Dice Roller
       </h2>
@@ -324,7 +327,7 @@ const App: React.FC = () => {
         />
       )}
       {result !== null && !showScene && (
-        <div className="mt-4 text-2xl text-white text-center bg-gray-700 px-4 rounded-lg m-auto">
+        <div className="mt-4 text-2xl text-white text-center initiative-list px-4 rounded-lg m-auto">
           Last roll result: {result}
         </div>
       )}

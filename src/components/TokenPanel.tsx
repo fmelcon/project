@@ -94,7 +94,10 @@ const TokenPanel: React.FC<TokenPanelProps> = ({
   ];
 
   return (
-    <div className="w-full bg-gray-800 p-4 rounded-lg shadow-lg flex flex-col gap-4">
+    <div
+      className="w-full p-4 rounded-lg shadow-lg flex flex-col gap-4 initiative-list"
+      style={{ background: "linear-gradient(145deg, #1a1a1a, #2d2d2d)" }}
+    >
       <h2 className="text-xl font-bold border-b border-gray-700 pb-2">
         Token Management
       </h2>
@@ -261,7 +264,8 @@ const TokenPanel: React.FC<TokenPanelProps> = ({
           <Upload size={16} /> Load Game
         </button>
         <button
-          className="bg-gray-600 hover:bg-gray-700 p-2 rounded flex items-center justify-center gap-1"
+          className="p-2 rounded flex items-center justify-center gap-1 initiative-list"
+          style={{ background: "linear-gradient(145deg, #1a1a1a, #2d2d2d)" }}
           onClick={resetGrid}
         >
           <RefreshCw size={16} /> Reset Grid
