@@ -100,7 +100,7 @@ const DiceScene: React.FC<{
   onComplete: () => void;
 }> = ({ sides, onAnimationEnd, onComplete }) => {
   const sceneRef = useRef<HTMLDivElement>(null);
-  const diceRef = useRef<THREE.Mesh | null>(null);
+  const diceRef = useRef<THREE.Mesh | THREE.Group | null>(null);
   const [result, setResult] = useState<number | null>(null);
   const [animationEnded, setAnimationEnded] = useState(false);
   const [showDice, setShowDice] = useState(true); // Controlar la visibilidad del dado
@@ -122,60 +122,103 @@ const DiceScene: React.FC<{
 
     // Cargar la textura
     const textureLoader = new THREE.TextureLoader();
-    const diceTexture = textureLoader.load(diceTextureImage); // Carga la textura de dado
-
-    // Crear el dado según el número de caras
-    let geometry;
-    switch (sides) {
-      case 4:
-        geometry = new THREE.TetrahedronGeometry(1); // D4 (Tetraedro)
-        break;
-      case 6:
-        geometry = new THREE.BoxGeometry(1, 1, 1); // D6 (Cubo)
-        break;
-      case 8:
-        geometry = new THREE.OctahedronGeometry(1); // D8 (Octaedro)
-        break;
-      case 10:
-        geometry = new THREE.DodecahedronGeometry(1); // D10 (Dodecaedro)
-        break;
-      case 12:
-        geometry = new THREE.DodecahedronGeometry(1); // D12 (Icosaedro)
-        break;
-      case 20:
-        geometry = new THREE.IcosahedronGeometry(1); // D20 (Icosaedro)
-        break;
-      default:
-        geometry = new THREE.BoxGeometry(1, 1, 1); // Por defecto, un cubo
-    }
+    const diceTexture = textureLoader.load(diceTextureImage);
 
     // Material con textura
     const material = new THREE.MeshStandardMaterial({
-      map: diceTexture, // Usamos la textura cargada
-      roughness: 0.4,
-      metalness: 1,
+      map: diceTexture,
+      roughness: 0.2, // Reducir la rugosidad para más brillo
+      metalness: 0.8, // Aumentar el metalness para más reflejo
+      envMapIntensity: 1.0, // Intensidad del mapa de entorno
     });
 
-    const dice = new THREE.Mesh(geometry, material);
+    let dice;
+
+    if (sides === 10) {
+      // Crear un grupo para los dos conos
+      const group = new THREE.Group();
+
+      // Crear el cono superior
+      const topCone = new THREE.Mesh(
+        new THREE.ConeGeometry(1, 1, 10),
+        material
+      );
+      topCone.position.y = 0.5;
+
+      // Crear el cono inferior
+      const bottomCone = new THREE.Mesh(
+        new THREE.ConeGeometry(1, 1, 10),
+        material
+      );
+      bottomCone.position.y = -0.5;
+      bottomCone.rotation.x = Math.PI;
+
+      // Agregar ambos conos al grupo
+      group.add(topCone);
+      group.add(bottomCone);
+
+      dice = group;
+    } else {
+      // Crear el dado según el número de caras
+      let geometry;
+      switch (sides) {
+        case 4:
+          geometry = new THREE.TetrahedronGeometry(1);
+          break;
+        case 6:
+          geometry = new THREE.BoxGeometry(1, 1, 1);
+          break;
+        case 8:
+          geometry = new THREE.OctahedronGeometry(1);
+          break;
+        case 12:
+          geometry = new THREE.DodecahedronGeometry(1);
+          break;
+        case 20:
+          geometry = new THREE.IcosahedronGeometry(1);
+          break;
+        default:
+          geometry = new THREE.BoxGeometry(1, 1, 1);
+      }
+      dice = new THREE.Mesh(geometry, material);
+    }
+
     scene.add(dice);
     diceRef.current = dice;
 
     // Configurar la cámara
-    camera.position.z = 6;
-    camera.position.y = 1;
+    camera.position.z = 5;
+    camera.position.y = 2;
     camera.lookAt(0, 0, 0);
 
-    // Agregar luces
-    const light1 = new THREE.DirectionalLight(0xffffff, 20);
-    light1.position.set(1, 1, 1).normalize();
+    // Mejorar la iluminación
+    const light1 = new THREE.DirectionalLight(0xffffff, 20); // Luz principal más suave
+    light1.position.set(2, 2, 2).normalize();
     scene.add(light1);
 
-    const light2 = new THREE.AmbientLight(0x404040, 20); // Luz ambiental
+    const light2 = new THREE.AmbientLight(0x404040, 10); // Luz ambiental más sutil
     scene.add(light2);
 
-    const light3 = new THREE.PointLight(0xffffff, 5, 20);
-    light3.position.set(0, 3, 3);
+    const light3 = new THREE.PointLight(0xffffff, 1, 10); // Luz puntual más suave
+    light3.position.set(-2, 2, -2);
     scene.add(light3);
+
+    // Agregar luz de relleno
+    const light4 = new THREE.DirectionalLight(0xffffff, 5);
+    light4.position.set(-2, -2, -2).normalize();
+    scene.add(light4);
+
+    // Agregar luz de acento
+    const light5 = new THREE.PointLight(0xffffff, 0.5, 8);
+    light5.position.set(0, -2, 2);
+    scene.add(light5);
+
+    // Configurar el renderer para mejor calidad
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.0;
 
     // Animación del dado
     const startTime = Date.now();
