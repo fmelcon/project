@@ -166,7 +166,7 @@ function App() {
         </div>
 
         {/* Columna central: Grilla y herramientas de dibujo */}
-        <div className="flex flex-col gap-4 w-full md:w-1/2">
+        <div className="flex flex-col gap-4 w-full">
           <div className="bg-gray-800 p-4 rounded-lg shadow-lg">
             <div className="flex justify-between items-center mb-4">
               <div className="flex gap-2">
