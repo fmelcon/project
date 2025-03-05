@@ -5,7 +5,8 @@ interface InitiativeListProps {
     id: string;
     name?: string;
     initiative?: number;
-    color: string; // Añadir el color del token
+    color: string;
+    type: "ally" | "enemy" | "boss";
   }>;
 }
 
@@ -16,20 +17,18 @@ const InitiativeList: React.FC<InitiativeListProps> = ({ tokens }) => {
   );
 
   return (
-    <div className="bg-gray-800 p-4 rounded-lg shadow-lg">
-      <h2 className="text-xl font-bold border-b border-gray-700 pb-2 mb-4">
-        Initiative Order
-      </h2>
+    <div className="initiative-list">
+      <h2>Initiative Order</h2>
       <ul>
         {sortedTokens.map((token) => (
-          <li key={token.id} className="flex justify-between items-center mb-2">
-            {/* Mostrar el color del token junto con el nombre */}
-            <div
-              className="px-3 rounded-full flex items-center gap-2"
-              style={{ backgroundColor: token.color }}
-            >
-              <span>{token.name || `Token ${token.id}`}</span>
-            </div>
+          <li
+            key={token.id}
+            style={{
+              backgroundColor: token.color,
+              opacity: 0.9,
+            }}
+          >
+            <span>{token.name || token.type}</span>
             <span>{token.initiative || "N/A"}</span>
           </li>
         ))}
