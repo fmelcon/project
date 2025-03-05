@@ -1,18 +1,27 @@
 import React, { useRef, useEffect, useState } from "react";
 import * as THREE from "three";
 import diceSound from "../dice-sound.mp3"; // Importa el archivo de sonido
+import diceTextureImage from "../dice-texture.jpg.jpg"; // Importa la textura de dado
 
 const DiceRoller: React.FC<{ onRoll: (sides: number) => void }> = ({
   onRoll,
 }) => {
+  const [isSoundMuted, setIsSoundMuted] = useState(false);
+
   const playSound = () => {
-    const audio = new Audio(diceSound); // Crea un nuevo objeto de audio
-    audio.play(); // Reproduce el sonido
+    if (!isSoundMuted) {
+      const audio = new Audio(diceSound); // Crea un nuevo objeto de audio
+      audio.play(); // Reproduce el sonido
+    }
+  };
+
+  const toggleMute = () => {
+    setIsSoundMuted(!isSoundMuted);
   };
 
   return (
     <div className="bg-gray-800 p-4 rounded-lg shadow-lg">
-      <h2 className="text-xl font-bold border-b border-gray-700 pb-2 mb-4 text-center ">
+      <h2 className="text-xl font-bold border-b border-gray-700 pb-2 mb-4 text-center">
         Dice Roller
       </h2>
       <div className="grid grid-cols-3 gap-2">
@@ -71,6 +80,16 @@ const DiceRoller: React.FC<{ onRoll: (sides: number) => void }> = ({
           D20
         </button>
       </div>
+      <div className="mt-4 text-center">
+        <button
+          onClick={toggleMute}
+          className={`bg-gray-500 text-white font-bold px-4 py-2 rounded ${
+            isSoundMuted ? "bg-gray-700" : "bg-gray-500"
+          }`}
+        >
+          {isSoundMuted ? "Unmute Sound" : "Mute Sound"}
+        </button>
+      </div>
     </div>
   );
 };
@@ -92,7 +111,7 @@ const DiceScene: React.FC<{
     // Configuración de la escena
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
-      75,
+      80,
       window.innerWidth / window.innerHeight,
       0.1,
       1000
@@ -100,6 +119,10 @@ const DiceScene: React.FC<{
     const renderer = new THREE.WebGLRenderer({ alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     sceneRef.current.appendChild(renderer.domElement);
+
+    // Cargar la textura
+    const textureLoader = new THREE.TextureLoader();
+    const diceTexture = textureLoader.load(diceTextureImage); // Carga la textura de dado
 
     // Crear el dado según el número de caras
     let geometry;
@@ -126,11 +149,11 @@ const DiceScene: React.FC<{
         geometry = new THREE.BoxGeometry(1, 1, 1); // Por defecto, un cubo
     }
 
-    // Material con degradado
+    // Material con textura
     const material = new THREE.MeshStandardMaterial({
-      color: 0x21ff00,
-      roughness: 0.3,
-      metalness: 0.7,
+      map: diceTexture, // Usamos la textura cargada
+      roughness: 0.4,
+      metalness: 1,
     });
 
     const dice = new THREE.Mesh(geometry, material);
@@ -143,22 +166,22 @@ const DiceScene: React.FC<{
     camera.lookAt(0, 0, 0);
 
     // Agregar luces
-    const light1 = new THREE.DirectionalLight(0xffffff, 1);
+    const light1 = new THREE.DirectionalLight(0xffffff, 20);
     light1.position.set(1, 1, 1).normalize();
     scene.add(light1);
 
-    const light2 = new THREE.AmbientLight(0x404040); // Luz ambiental
+    const light2 = new THREE.AmbientLight(0x404040, 20); // Luz ambiental
     scene.add(light2);
 
-    const light3 = new THREE.PointLight(0xffffff, 1, 10);
+    const light3 = new THREE.PointLight(0xffffff, 5, 20);
     light3.position.set(0, 3, 3);
     scene.add(light3);
 
     // Animación del dado
     const startTime = Date.now();
     const animationDuration = 1500; // 1.5 segundos de animación
-    const resultDisplayDuration = 1000; // Mostrar resultado durante 1 segundo
-    const rotations = 1.5; // Número de vueltas completas (reducción para que no sea demasiado)
+    const resultDisplayDuration = 500; // Mostrar resultado durante 1 segundo
+    const rotations = 1; // Número de vueltas completas
 
     const animate = () => {
       const currentTime = Date.now();
@@ -167,7 +190,8 @@ const DiceScene: React.FC<{
       if (elapsedTime < animationDuration) {
         // Calcular la rotación basada en el tiempo transcurrido
         const progress = elapsedTime / animationDuration;
-        const angle = progress * Math.PI * 2 * rotations; // 2 vueltas completas
+        const randomFactor = (Math.random() - 0.5) * 0.2; // Variación aleatoria
+        const angle = progress * Math.PI * 2 * rotations + randomFactor; // Rotación aleatoria
 
         if (diceRef.current) {
           diceRef.current.rotation.x = angle;
@@ -177,7 +201,7 @@ const DiceScene: React.FC<{
 
         requestAnimationFrame(animate);
       } else {
-        // Detener la rotación y mostrar el resultado
+        // Determinar la cara más cercana
         const result = Math.floor(Math.random() * sides) + 1;
         setResult(result); // Solo se actualiza una vez al terminar la animación
         setAnimationEnded(true); // Marcar que la animación terminó
